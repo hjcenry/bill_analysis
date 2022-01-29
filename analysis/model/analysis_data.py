@@ -1,12 +1,12 @@
 import json
 
-from constants import OrderType, PaymentMode
+from constants import OrderType, PaymentMode, AnalysisType
 
 
 class AnalysisData(object):
 
-    def __init__(self, order_date_time: str, payment_type: str, payment_trader: str, order_goods: str,
-                 order_type: OrderType, payment_money: float, payment_mode: PaymentMode):
+    def __init__(self, order_date_time: str, data_from: AnalysisType, payment_type: str, payment_trader: str,
+                 order_goods: str, order_type: OrderType, payment_money: float, payment_mode: PaymentMode):
         """
         初始订单数据
         :param order_date_time:交易时间
@@ -19,6 +19,8 @@ class AnalysisData(object):
         """
         # 交易时间
         self.order_date_time = order_date_time
+        # 统计来源
+        self.data_from = data_from
         # 交易类型
         self.payment_type = payment_type
         # 交易对方
