@@ -43,7 +43,7 @@ class CmbcAnalysts(Analysts):
             payment_money = float(order[3].strip())
 
         # 支付方式
-        payment_mode = PaymentMode.CMBC_BANK_1436
+        payment_mode = PaymentMode.CMBC_BANK
 
         return AnalysisData(order_date_time, self.get_analysts_type(), payment_type, payment_trader, order_goods,
                             order_type, payment_money, payment_mode)

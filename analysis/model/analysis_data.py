@@ -1,5 +1,3 @@
-import json
-
 from constants import OrderType, PaymentMode, AnalysisType
 
 
@@ -33,6 +31,11 @@ class AnalysisData(object):
         self.payment_money = payment_money
         # 支付方式
         self.payment_mode = payment_mode
+        # 用户名
+        self.user = ""
+
+    def set_user(self, user: str):
+        self.user = user
 
     def to_string(self):
         return self.__dict__

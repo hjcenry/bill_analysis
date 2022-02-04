@@ -37,19 +37,19 @@ class PaymentMode(Enum):
         "name": "微信零钱",
         "tags": ["零钱"]
     }
-    # 招商银行1436
-    CMBC_BANK_1436 = {
-        "name": "招商银行(1436)",
-        "tags": ["招商银行(1436)"]
+    # 招商银行
+    CMBC_BANK = {
+        "name": "招商银行",
+        "tags": ["招商银行(1436)", "招商银行储蓄卡(1436)", "招商银行(1832)", "招商银行储蓄卡(1832)"]
     }
-    # 招商银行8599
-    CMBC_BANK_8599 = {
-        "name": "招商银行(8599)",
+    # 招商银行信用卡
+    CMBC_BANK_CREDIT = {
+        "name": "招商银行信用卡",
         "tags": ["招商银行(8599)", "招商银行信用卡(8599)"]
     }
-    # 中国银行5763
-    BOC_BANK_5763 = {
-        "name": "中国银行(5763)",
+    # 中国银行
+    BOC_BANK = {
+        "name": "中国银行",
         "tags": ["中国银行(5763)"]
     }
     # 支付宝花呗
@@ -94,6 +94,10 @@ class FilterOperator(Enum):
     EXACT = {
         "symbol": "="
     }
+    # 精确匹配不相等
+    NOT_EQUAL = {
+        "symbol": "!="
+    }
     # 开头
     START_WITH = {
         "symbol": "start"
@@ -117,6 +121,8 @@ class FilterOperator(Enum):
     def match(self, content: str, target: str):
         if self == FilterOperator.EXACT:
             return target == content
+        if self == FilterOperator.NOT_EQUAL:
+            return target != content
         if self == FilterOperator.START_WITH:
             return target.startswith(content)
         if self == FilterOperator.END_WITH:
