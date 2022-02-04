@@ -40,8 +40,14 @@ def generate_wechat_red_packet_graph():
     统计微信红包
     :return:
     """
+    # 加载红包数据
+    red_packet_analysts = analysis_factory.create_analysts(AnalysisType.WE_CHAT)
+    if red_packet_analysts is None:
+        return
+    red_packet_data_list = red_packet_analysts.analysis(False)
+
     user_red_packet = {}
-    for data in data_list:
+    for data in red_packet_data_list:
         # 过滤出红包数据
         if "微信红包" not in data.payment_type or "退款" in data.payment_type:
             continue

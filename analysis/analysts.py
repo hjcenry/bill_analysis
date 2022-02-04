@@ -47,7 +47,7 @@ class Analysts:
 
         return user_order_map
 
-    def analysis(self):
+    def analysis(self, do_filter=True):
         """
         分析
         :return:
@@ -60,7 +60,8 @@ class Analysts:
             order_list = user_order_map[user]
 
             for order in order_list:
-                if not self.filter(order):
+                if do_filter and not self.filter(order):
+                    # 过滤处理
                     continue
 
                 analysis_data = self.convert_order_to_analysis_data(order)
