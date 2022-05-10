@@ -16,10 +16,6 @@ class CmbcAnalysts(Analysts):
         self.cut_end_row = 3
 
     def convert_order_to_analysis_data(self, order):
-        if order[6].strip() == "转账   何金成":
-            # 自己给自己的交易不做记录
-            return None
-
         # 交易时间
         order_date_time = order[0].strip() + order[1].strip()
         datetime_object = datetime.strptime(order_date_time, '%Y%m%d%H:%M:%S')
