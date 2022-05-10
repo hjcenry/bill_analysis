@@ -1,5 +1,4 @@
 import configparser
-import json
 
 
 class Config(object):
@@ -7,12 +6,21 @@ class Config(object):
     config_dict: None
 
     def __init__(self, file_path):
-        cf = configparser.RawConfigParser()
-        cf.read(file_path, encoding='utf-8')
-        secs = cf.sections()
+        self.file_path = file_path
+        self.cf = configparser.RawConfigParser()
+        self.reload(file_path)
+
+    def reload(self, file_path):
+        """
+        重载配置文件
+        :param file_path:
+        :return:
+        """
+        self.cf.read(file_path, encoding='utf-8')
+        secs = self.cf.sections()
         config_dict = {}
         for sec in secs:
-            items = cf.items(sec)
+            items = self.cf.items(sec)
             item_dict = {}
             for item in items:
                 item_dict[item[0]] = item[1]
@@ -30,9 +38,9 @@ class Config(object):
         if sec is not None and sec in self.config_dict:
             return self.config_dict[sec][key]
         else:
-            for (k, v) in self.config_dict:
-                if key in v:
-                    return v[key]
+            for s in self.config_dict:
+                if key in self.config_dict[s]:
+                    return self.config_dict[s][key]
             return None
 
     def get_config_sec(self, sec):

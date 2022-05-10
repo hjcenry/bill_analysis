@@ -1,11 +1,13 @@
 import math
+import os
 
 import analysis.analysis_factory as analysis_factory
 from constants import AnalysisType, OrderType, config
-from util import csv_writer, matlib_drawer, file_encoding_converter
+from util import csv_writer, matlib_drawer
+from util.sys_logger import logger
 
 
-def generate_total_bill():
+def generate_total_bill(data_list, out_dir=None, out_file=None, out_total=True):
     head_list = ["日期", "统计来源", "统计渠道", "交易类型", "交易对方", "商品", "订单类型", "金额", "支付方式"]
     content_list = []
     # 总支出
@@ -25,26 +27,34 @@ def generate_total_bill():
                    data.payment_trader, data.order_goods, data.order_type.value["name"], payment_money,
                    data.payment_mode.value["name"]]
         content_list.append(content)
-    content_list.append(["总账:" + str(total_in - total_out), "总收入:" + str(total_in), "总支出:" + str(total_out)])
+    if out_total:
+        content_list.append(["总账:" + str(total_in - total_out), "总收入:" + str(total_in), "总支出:" + str(total_out)])
+
     for content in content_list:
-        print(content)
+        logger.info(content)
 
-    out_file = config.get_config("file_dir", "MAIN") + out_config["bill_file"]
-    print("开始写文件:" + out_file)
-    csv_writer.write_file(out_file, head_list, content_list)
-    print("写文件:" + out_file + "完成")
+    if out_dir is None and out_file is None:
+        out = config.get_config("file_dir", "MAIN") + config.get_config("bill_file", "OUT")
+    else:
+        out = out_dir + '/' + out_file
+    csv_writer.write_file(out, head_list, content_list)
+    return out, round(total_in, 2), round(total_out, 2)
 
 
-def generate_wechat_red_packet_graph():
+def generate_wechat_red_packet_graph(save_file=None, bill_files=None, absolute_path=False):
     """
     统计微信红包
+    :param bill_files:
+    :param absolute_path:
+    :param save_file 保存的文件
     :return:
     """
     # 加载红包数据
     red_packet_analysts = analysis_factory.create_analysts(AnalysisType.WE_CHAT)
     if red_packet_analysts is None:
         return
-    red_packet_data_list = red_packet_analysts.analysis(False)
+    red_packet_data_list = red_packet_analysts.analysis(do_filter=True, bill_files=bill_files,
+                                                        absolute_path=absolute_path)
 
     user_red_packet = {}
     for data in red_packet_data_list:
@@ -92,7 +102,14 @@ def generate_wechat_red_packet_graph():
 
             receive_label_list.append(trader + " - " + str(payment_money))
             receive_num_list.append(payment_money)
-        matlib_drawer.draw_bar_h(receive_label_list, receive_num_list, False, user + "收红包", "金额（元）", "对方")
+
+        receive_file_name = save_file
+        if save_file is not None:
+            receive_file_name = os.path.dirname(os.path.abspath(save_file)) + '/' + user + '-收红包-' + os.path.basename(
+                save_file)
+
+        matlib_drawer.draw_bar_h(receive_label_list, receive_num_list, False, user + "收红包", "金额（元）", "对方",
+                                 save_file=receive_file_name)
 
         # 发红包
         send_packet = red_packet[1]
@@ -108,10 +125,18 @@ def generate_wechat_red_packet_graph():
 
             send_label_list.append(trader + " - " + str(payment_money))
             send_num_list.append(payment_money)
-        matlib_drawer.draw_bar_h(send_label_list, send_num_list, False, user + "发红包", "金额（元）", "对方")
+
+        send_file_name = save_file
+        if save_file is not None:
+            send_file_name = os.path.dirname(
+                os.path.abspath(save_file)) + '/' + user + '-' + '-发红包-' + os.path.basename(
+                save_file)
+
+        matlib_drawer.draw_bar_h(send_label_list, send_num_list, False, user + "发红包", "金额（元）", "对方",
+                                 save_file=send_file_name)
 
 
-def generate_pie_graph():
+def generate_pie_graph(data_list, save_file=None):
     # 多少比例以下归为其他
     other_ratio = 2
     # 总支出
@@ -147,11 +172,11 @@ def generate_pie_graph():
 
     # 收入数据
     final_in_datas = get_datas_to_draw_pie_graph(in_datas, other_ratio, total_in)
-    matlib_drawer.draw_pie_graph(final_in_datas, "收入占比")
+    matlib_drawer.draw_pie_graph(final_in_datas, "收入占比", save_file=save_file)
 
     # 支出数据
     final_out_datas = get_datas_to_draw_pie_graph(out_datas, other_ratio, total_out)
-    matlib_drawer.draw_pie_graph(final_out_datas, "支出占比")
+    matlib_drawer.draw_pie_graph(final_out_datas, "支出占比", save_file=save_file)
 
 
 def get_datas_to_draw_pie_graph(datas, other_ratio, total):
@@ -179,29 +204,6 @@ def get_datas_to_draw_pie_graph(datas, other_ratio, total):
     return final_datas
 
 
-def print_debug():
+def print_debug(data_list):
     for data in data_list:
         print(data.to_string())
-
-
-if __name__ == '__main__':
-
-    # 批量转换文件编码
-    file_encoding_converter.check_convert(config.get_config("file_dir", "MAIN"))
-
-    data_list = []
-    for analysts_type in AnalysisType:
-        analysts = analysis_factory.create_analysts(analysts_type)
-        if analysts is None:
-            continue
-        data_list.extend(analysts.analysis())
-
-    out_config = config.get_config_sec("OUT")
-
-    # print_debug()
-    # 生成总账单
-    generate_total_bill()
-    # 生成占比数据图
-    generate_pie_graph()
-    # 生成红包数据图
-    generate_wechat_red_packet_graph()

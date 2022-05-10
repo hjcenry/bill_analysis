@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 from matplotlib import font_manager
 
 
-def draw_pie_graph(datas: dict, data_title: str):
+def draw_pie_graph(datas: dict, data_title: str, save_file=None):
     """
     绘制饼图
     :param data_title:
     :param datas: 数据
+    :param save_file: 保存文件
     oses = {
         'windows7': 60.86,
         'windows10': 18.46,
@@ -29,10 +30,14 @@ def draw_pie_graph(datas: dict, data_title: str):
         # 设置分块的比例文字文字大小
         autotext.set_size(10)
     plt.title(data_title)
-    plt.show()
+    if save_file is None:
+        plt.show()
+    else:
+        plt.savefig(save_file)
 
 
-def draw_bar_h(label_list: list, num_list: list, show_number: bool, data_title: str, x_label: str, y_label: str):
+def draw_bar_h(label_list: list, num_list: list, show_number: bool, data_title: str, x_label: str, y_label: str,
+               save_file=None):
     fig, ax = plt.subplots(figsize=(20, 12))
     ax.barh(label_list, num_list)
 
@@ -45,10 +50,14 @@ def draw_bar_h(label_list: list, num_list: list, show_number: bool, data_title: 
     plt.ylabel(y_label)
     plt.rcParams['font.sans-serif'] = ['simhei']  # 用来正常显示中文标签
     plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
-    plt.show()
+    if save_file:
+        plt.savefig(save_file)
+    else:
+        plt.show()
 
 
-def draw_bar(label_list: list, num_list: list, show_number: bool, data_title: str, x_label: str, y_label: str):
+def draw_bar(label_list: list, num_list: list, show_number: bool, data_title: str, x_label: str, y_label: str,
+             save_file=None):
     """
     绘制柱状图
     :param label_list: 标签list
@@ -57,6 +66,7 @@ def draw_bar(label_list: list, num_list: list, show_number: bool, data_title: st
     :param data_title: 标题
     :param x_label: x坐标文字
     :param y_label: y坐标文字
+    :param save_file: 保存文件
     :return:
     """
     font = font_manager.FontProperties(fname="C:\Windows\Fonts\simhei.ttf", size=10)
@@ -72,4 +82,7 @@ def draw_bar(label_list: list, num_list: list, show_number: bool, data_title: st
     plt.ylabel(y_label)
     plt.rcParams['font.sans-serif'] = ['simhei']  # 用来正常显示中文标签
     plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
-    plt.show()
+    if save_file:
+        plt.savefig(save_file)
+    else:
+        plt.show()

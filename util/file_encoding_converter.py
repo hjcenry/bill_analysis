@@ -1,6 +1,7 @@
 # coding utf-8
 import os
 import chardet
+from util.sys_logger import logger
 
 
 # 获得所有文件的路径,传入根目录路径
@@ -45,12 +46,21 @@ def try_get_coding(file_path):
 
 
 # 修改文件编码方式
-def change_to_utf_file(path: str, ext: str):
+def change_to_utf_file(file: str, ext: str):
+    c = judge_coding(file)
+    change(file, c if c is not None else "utf-8")
+    if c is not None and c != 'utf-8':
+        logger.info("{} 编码方式已从{}改为 utf-8".format(file, c))
+
+
+# 修改文件编码方式
+def change_to_utf_files(path: str, ext: str):
     for i in find_all_file(path, ext):
+        change_to_utf_file(i)
         c = judge_coding(i)
         change(i, c if c is not None else "utf-8")
         if c is not None and c != 'utf-8':
-            print("{} 编码方式已从{}改为 utf-8".format(i, c))
+            logger.info("{} 编码方式已从{}改为 utf-8".format(i, c))
 
 
 def change(path: str, coding: str):
@@ -74,10 +84,9 @@ def change(path: str, coding: str):
 def check(path: str, ext: str):
     for i in find_all_file(path, ext):
         with open(i, 'rb')[0:1024] as f:
-            print(chardet.detect(f.read())['encoding'], ': ', i)
+            logger.info(chardet.detect(f.read())['encoding'], ': ', i)
 
 
 def check_convert(path):
     ext = ".csv"
-    change_to_utf_file(path, ext)
-    # check(my_path, ext)
+    change_to_utf_files(path, ext)

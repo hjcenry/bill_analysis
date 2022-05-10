@@ -1,8 +1,9 @@
+import os
 from abc import abstractmethod
 
-from util import csv_reader
-from constants import config, AnalysisType, FilterOperator
-import os
+from constants import config, FilterOperator
+from util import csv_reader, file_encoding_converter
+from util.sys_logger import logger
 
 
 class Analysts:
@@ -10,24 +11,35 @@ class Analysts:
     def __init__(self):
         self.config = config.get_config_sec(self.get_analysts_type().name)
 
-    def load_file(self):
+    def load_file(self, bill_files=None, bill_file_dir=None, absolute_path=False):
         """
         加载文件
+        :param bill_files:
+        :param bill_file_dir:
+        :param absolute_path:
         :return:
         """
         user_order_map = {}
         # 读出所有文件
-        files = self.config["files"]
-        for file_path in files.split(";"):
-            file_name = file_path
-            file_path = config.get_config("file_dir", "MAIN") + file_path
+        files = bill_files
+        if files is None:
+            files = self.config["files"].split(";")
 
-            if file_name is None or file_name == "":
+        file_dir = bill_file_dir
+        if file_dir is not None:
+            file_dir = config.get_config("file_dir", "MAIN")
+
+        for file_path in files:
+            if len(file_path) == 0:
                 continue
+            if not absolute_path:
+                file_path = file_dir + file_path
 
             if not os.path.exists(file_path):
-                print("[" + file_path + "]不存在，请检查路径!!!")
+                logger.error("[" + file_path + "]不存在，请检查路径!!!")
                 continue
+
+            file_name = os.path.basename(file_path)
 
             # 用户，默认空
             user_name = " "
@@ -43,16 +55,23 @@ class Analysts:
                 user_order_map[user_name] = []
                 order_list = user_order_map[user_name]
 
+            # 批量转换文件编码
+            file_encoding_converter.change_to_utf_file(file_path, '.csv')
+
             order_list.extend(csv_reader.read_file(file_path, self.cut_pre_row, self.cut_end_row))
 
         return user_order_map
 
-    def analysis(self, do_filter=True):
+    def analysis(self, do_filter=True, bill_files=None, bill_file_dir=None, absolute_path=False):
         """
         分析
+        :param do_filter:
+        :param bill_files: 文件
+        :param bill_file_dir: 文件目录
+        :param absolute_path: 是否是绝对路径
         :return:
         """
-        user_order_map = self.load_file()
+        user_order_map = self.load_file(bill_files=bill_files, bill_file_dir=bill_file_dir, absolute_path=absolute_path)
 
         analysis_datas = []
 
