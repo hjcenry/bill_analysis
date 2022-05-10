@@ -34,6 +34,7 @@ def draw_pie_graph(datas: dict, data_title: str, save_file=None):
         plt.show()
     else:
         plt.savefig(save_file)
+    plt.clf()
 
 
 def draw_bar_h(label_list: list, num_list: list, show_number: bool, data_title: str, x_label: str, y_label: str,
@@ -54,6 +55,7 @@ def draw_bar_h(label_list: list, num_list: list, show_number: bool, data_title: 
         plt.savefig(save_file)
     else:
         plt.show()
+    plt.clf()
 
 
 def draw_bar(label_list: list, num_list: list, show_number: bool, data_title: str, x_label: str, y_label: str,
@@ -86,3 +88,4 @@ def draw_bar(label_list: list, num_list: list, show_number: bool, data_title: st
         plt.savefig(save_file)
     else:
         plt.show()
+    plt.clf()
