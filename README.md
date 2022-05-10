@@ -6,7 +6,7 @@
 - V2版：增加图形界面版本，可打包成exe，方便日常使用
 
 ```
-pyinstaller -D -n 账单分析工具 --add-data=./;./ --windowed -p F:\project\bill_analysis\venv\Lib\site-packages -i F:\project\bill_analysis\icon.ico bill_gui.py
+pyinstaller -D -n 账单分析工具 --add-data=./;./ -w -p F:\project\bill_analysis\venv\Lib\site-packages -i F:\project\bill_analysis\icon.ico bill_gui.py
 ```
 
 # 账单分析步骤

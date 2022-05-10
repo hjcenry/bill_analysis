@@ -172,11 +172,19 @@ def generate_pie_graph(data_list, save_file=None):
 
     # 收入数据
     final_in_datas = get_datas_to_draw_pie_graph(in_datas, other_ratio, total_in)
-    matlib_drawer.draw_pie_graph(final_in_datas, "收入占比", save_file=save_file)
+    if save_file is not None:
+        in_file_name = os.path.dirname(
+            os.path.abspath(save_file)) + '/' + '收入-' + os.path.basename(
+            save_file)
+    matlib_drawer.draw_pie_graph(final_in_datas, "收入占比", save_file=in_file_name)
 
     # 支出数据
     final_out_datas = get_datas_to_draw_pie_graph(out_datas, other_ratio, total_out)
-    matlib_drawer.draw_pie_graph(final_out_datas, "支出占比", save_file=save_file)
+    if save_file is not None:
+        out_file_name = os.path.dirname(
+            os.path.abspath(save_file)) + '/' + '支出-' + os.path.basename(
+            save_file)
+    matlib_drawer.draw_pie_graph(final_out_datas, "支出占比", save_file=out_file_name)
 
 
 def get_datas_to_draw_pie_graph(datas, other_ratio, total):

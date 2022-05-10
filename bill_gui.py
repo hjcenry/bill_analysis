@@ -29,7 +29,7 @@ class BillGui(QtWidgets.QMainWindow, Ui_MainWindow):
         # 汇总账单
         self.out_bill_file_name = "汇总账单.csv"
         # 占比数据饼图
-        self.ratio_pic = "收支占比图.jpg"
+        self.ratio_pic = "占比图.jpg"
         # 红包数据饼图
         self.red_packet_pic = "红包数据图.jpg"
 
@@ -212,8 +212,12 @@ class BillGui(QtWidgets.QMainWindow, Ui_MainWindow):
     def set_logger(self):
         self.logger.setLevel(logging.INFO)
 
-    def update_state_text(self, state_text, color=None):
-        self.logger.info(state_text)
+    def update_state_text(self, state_text, color=None, error=None):
+        if error is not None:
+            self.logger.error(state_text, error)
+        else:
+            self.logger.info(state_text)
+
         self.console_log.moveCursor(QtGui.QTextCursor.End)
 
         if color is not None:
@@ -237,7 +241,7 @@ class BillGui(QtWidgets.QMainWindow, Ui_MainWindow):
             result = analysts.analysis(bill_files=line_edit.text().split(";"), absolute_path=True)
             data_list.extend(result)
         except Exception as e:
-            logger.info('%s账单分析异常!' % analysts_type.value["name"], e)
+            self.update_state_text('%s账单分析异常!' % analysts_type.value["name"], color="red", error=e)
 
     def start_analysis_async(self):
         if self.running_lock.locked():
@@ -248,49 +252,53 @@ class BillGui(QtWidgets.QMainWindow, Ui_MainWindow):
             threading.Thread(target=self.start_analysis, name="analysis_thread").start()
 
     def start_analysis(self):
-        if self.out_dir.text() is None or len(self.out_dir.text()) == 0:
-            self.update_state_text("请选择输出目录!", color="red")
-            return
+        try:
+            if self.out_dir.text() is None or len(self.out_dir.text()) == 0:
+                self.update_state_text("请选择输出目录!", color="red")
+                return
 
-        data_list = []
-        self.update_state_text("开始分析账单", color="blue")
-        self.analysis(data_list, AnalysisType.WE_CHAT, self.wechat_file)
-        self.analysis(data_list, AnalysisType.ALIPAY, self.alipay_file)
-        self.analysis(data_list, AnalysisType.CMBC, self.cmbc_file)
-        self.analysis(data_list, AnalysisType.BOC, self.boc_file)
+            data_list = []
+            self.update_state_text("开始分析账单", color="blue")
+            self.analysis(data_list, AnalysisType.WE_CHAT, self.wechat_file)
+            self.analysis(data_list, AnalysisType.ALIPAY, self.alipay_file)
+            self.analysis(data_list, AnalysisType.CMBC, self.cmbc_file)
+            self.analysis(data_list, AnalysisType.BOC, self.boc_file)
 
-        bill_common.print_debug(data_list)
-        # # 生成总账单
-        self.update_state_text("开始生成汇总账单", color="blue")
-        bill, total_in, total_out = bill_common.generate_total_bill(data_list, out_dir=self.out_dir.text(),
-                                                                    out_file=self.out_bill_file_name, out_total=False)
-        self.update_state_text("生成汇总账单[%s]" % bill, color="green")
-        # 生成占比数据图
-        self.update_state_text("开始生成占比数据饼图", color="blue")
-        ratio_pic_file = self.out_dir.text() + "/" + self.ratio_pic
-        bill_common.generate_pie_graph(data_list, save_file=ratio_pic_file)
-        self.update_state_text("生成占比数据饼图[%s]" % ratio_pic_file, color="green")
-        # 生成红包数据图
-        if len(self.wechat_file.text()) > 0:
-            red_packet_file = self.out_dir.text() + "/" + self.red_packet_pic
-            self.update_state_text("开始生成红包数据图", color="blue")
-            bill_common.generate_wechat_red_packet_graph(save_file=red_packet_file,
-                                                         bill_files=self.wechat_file.text().split(";"),
-                                                         absolute_path=True)
+            bill_common.print_debug(data_list)
+            # # 生成总账单
+            self.update_state_text("开始生成汇总账单", color="blue")
+            bill, total_in, total_out = bill_common.generate_total_bill(data_list, out_dir=self.out_dir.text(),
+                                                                        out_file=self.out_bill_file_name,
+                                                                        out_total=False)
+            self.update_state_text("生成汇总账单[%s]" % bill, color="green")
+            # 生成占比数据图
+            self.update_state_text("开始生成收入支持占比数据图", color="blue")
+            ratio_pic_file = self.out_dir.text() + "/" + self.ratio_pic
+            bill_common.generate_pie_graph(data_list, save_file=ratio_pic_file)
+            # 生成红包数据图
+            if len(self.wechat_file.text()) > 0:
+                red_packet_file = self.out_dir.text() + "/" + self.red_packet_pic
+                self.update_state_text("开始生成红包数据图", color="blue")
+                bill_common.generate_wechat_red_packet_graph(save_file=red_packet_file,
+                                                             bill_files=self.wechat_file.text().split(";"),
+                                                             absolute_path=True)
 
-        self.update_state_text("账单总收入<font color=green>[%s]</font>" % total_in)
-        self.update_state_text("账单总支出<font color=red>[%s]</font>" % total_out)
-        total_amount = round((total_in - total_out), 2)
-        if total_amount >= 0:
-            total_amount_text = '<font color=green>[%s]</font>' % total_amount
-        else:
-            total_amount_text = '<font color=red>[%s]</font>' % total_amount
+            self.update_state_text("账单总收入<font color=green>[%s]</font>" % total_in)
+            self.update_state_text("账单总支出<font color=red>[%s]</font>" % total_out)
+            total_amount = round((total_in - total_out), 2)
+            if total_amount >= 0:
+                total_amount_text = '<font color=green>[%s]</font>' % total_amount
+            else:
+                total_amount_text = '<font color=red>[%s]</font>' % total_amount
 
-        self.update_state_text("账单总账%s" % total_amount_text)
+            self.update_state_text("账单总账%s" % total_amount_text)
 
-        self.update_state_text("汇总账单分析完成", color="green")
-        self.running_lock.release()
-        self.start.setEnabled(True)
+            self.update_state_text("汇总账单分析完成", color="green")
+        except Exception as e:
+            self.update_state_text("账单分析异常", color="red", error=e)
+        finally:
+            self.running_lock.release()
+            self.start.setEnabled(True)
 
     def do_clear_log(self):
         """
